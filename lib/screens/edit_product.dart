@@ -95,7 +95,7 @@ class _editProductScreenState extends State<editProductScreen> {
       _form.currentState?.save();
       try {
         await Provider.of<Products>(context, listen: false)
-            .addProductc(_editedproduct);
+            .addProducts(_editedproduct);
       } catch (error) {
         showDialog(
             context: context,

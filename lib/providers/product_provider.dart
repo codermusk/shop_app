@@ -1,3 +1,4 @@
+import 'package:shop_app/model/httpException.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,11 @@ import 'product.dart';
 import 'dart:convert';
 
 class Products with ChangeNotifier {
+  final String? token;
+  final String? userId ;
+
+  Products(this.token, this._items , this.userId);
+
   List<Product> _items = [
     // Product(
     //   id: 'p1',
@@ -60,12 +66,17 @@ class Products with ChangeNotifier {
   //    notifyListeners() ;
   //  }
 
-  Future<void> getsetProduct() async {
-    const url =
-        'https://newapp-99265-default-rtdb.firebaseio.com//product.json';
+  Future<void> getsetProduct([bool filterByUser = false]) async {
+    var filterString = filterByUser ? 'orderBy="creatorId"&equalTo="$userId' : ' ';
+    var url =
+        'https://newapp-99265-default-rtdb.firebaseio.com//product.json?auth=$token&$filterString'
+        '';
     try {
       final response = await http.get(Uri.parse(url));
       final extractedData = jsonDecode(response.body) as Map<String, dynamic>;
+       url = 'https://newapp-99265-default-rtdb.firebaseio.com//product/$userId.json?auth=$token';
+      final favouriteResponse = await http.get(Uri.parse(url));
+      final favouriteData =  json.decode(favouriteResponse.body);
       final List<Product> Loadeddata = [];
       extractedData.forEach((productId, Productdata) {
         Loadeddata.add(Product(
@@ -74,9 +85,10 @@ class Products with ChangeNotifier {
             description: Productdata['description'],
             price: Productdata['price'],
             imageUrl: Productdata['imageUrl'],
-            isFavourite: Productdata['isFavourite']));
+            isFavourite:favouriteData == null ? false :  favouriteData[productId],
+        ));
       });
-      _items = Loadeddata as List<Product>;
+      _items = Loadeddata;
       notifyListeners();
     } catch (error) {
       throw (error);
@@ -87,9 +99,9 @@ class Products with ChangeNotifier {
     return _items.firstWhere((element) => element.id == productId);
   }
 
-  Future<void> addProductc(Product product) async {
-    const url =
-        'https://newapp-99265-default-rtdb.firebaseio.com//product.json';
+  Future<void> addProducts(Product product) async {
+    final url =
+        'https://newapp-99265-default-rtdb.firebaseio.com//product.json?auth=$token';
     try {
       final value = await http.post(
         Uri.parse(url),
@@ -98,7 +110,8 @@ class Products with ChangeNotifier {
           'description': product.description,
           'imageUrl': product.imageUrl,
           'price': product.price,
-          'isFavourite': product.isFavourite
+          'isFavourite': product.isFavourite,
+          'creatorId' : userId ,
         }),
       );
       final newProduct = Product(
@@ -123,7 +136,7 @@ class Products with ChangeNotifier {
     return _items
         .where(
           (element) => element.isFavourite,
-        )
+    )
         .toList();
   }
 
@@ -134,8 +147,8 @@ class Products with ChangeNotifier {
   Future<void> UpdateProuct(String id, Product newProduct) async {
     final index = _items.indexWhere((element) => element.id == id);
     final url =
-        'https://newapp-99265-default-rtdb.firebaseio.com//product/$id.json';
-    await  http.patch(Uri.parse(url),
+        'https://newapp-99265-default-rtdb.firebaseio.com//product/$id.json?auth=$token';
+    await http.patch(Uri.parse(url),
         body: json.encode({
           'title': newProduct.title,
           'description': newProduct.description,
@@ -148,8 +161,23 @@ class Products with ChangeNotifier {
     }
   }
 
-  void DeleteProduct(String id) {
-    _items.removeWhere((element) => element.id == id);
+
+  Future<void> DeleteProduct(String id) async {
+    final existingProductIndex =
+    _items.indexWhere((element) => element.id == id);
+    var existingProduct = _items[existingProductIndex];
+
+    _items.removeAt(existingProductIndex);
+    notifyListeners();
+    final url =
+        'https://newapp-99265-default-rtdb.firebaseio.com//product/$id.json';
+    final response = await http.delete(Uri.parse(url)).then((response) {
+      if (response.statusCode >= 400) {
+        throw HttpException('Could Not Delete The Product');
+      }
+    }).catchError((_) {
+      _items.insert(existingProductIndex, existingProduct);
+    });
     notifyListeners();
   }
 }

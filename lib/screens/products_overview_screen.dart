@@ -23,29 +23,31 @@ class productOverview extends StatefulWidget {
 
 class _productOverviewState extends State<productOverview> {
   var ShowisFavourites = false;
-  var isInit = true  ;
-  var isLoading = false ;
-  
+  var isInit = true;
+
+  var isLoading = false;
+
   @override
   void initState() {
     // TODO: implement initState
     //   Future.delayed(Duration.zero).then((_) =>     Provider.of<Products>(context).getsetProduct();)
     super.initState();
   }
+
   @override
-  void didChangeDependencies()  {
+  void didChangeDependencies() {
     // TODO: implement didChangeDependencies
-    if(isInit){
+    if (isInit) {
       setState(() {
         isLoading = true;
       });
-      Provider.of<Products>(context).getsetProduct().then((_){
+      Provider.of<Products>(context).getsetProduct().then((_) {
         setState(() {
-         isLoading = false ;
+          isLoading = false;
         });
       });
     }
-    isInit = false ;
+    isInit = false;
     super.didChangeDependencies();
   }
 
@@ -74,24 +76,29 @@ class _productOverviewState extends State<productOverview> {
                 value: filterOptions.all,
               )
             ],
-            icon: Icon(Icons.more_vert),
+            icon: Icon(Icons.unfold_more_outlined),
           ),
           Consumer<Cart>(
-            builder: (ctx , cart, child)=>Badge(child: child!, value: cart.cartcount.toString(),   ) ,
+            builder: (ctx, cart, child) => Badge(
+              child: child!,
+              value: cart.cartcount.toString(),
+            ),
             child: IconButton(
               icon: Icon(Icons.shopping_cart),
-              onPressed: (){
-                Navigator.of(context).pushNamed(cartScreen.route );
+              onPressed: () {
+                Navigator.of(context).pushNamed(cartScreen.route);
               },
             ),
           )
         ],
-
-
         title: Text('SHOP APP'),
       ),
       drawer: AppDrawer(),
-      body: isLoading ? Center(child: CircularProgressIndicator(),)  :  products_grid(ShowisFavourites),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : products_grid(ShowisFavourites),
     );
   }
 }

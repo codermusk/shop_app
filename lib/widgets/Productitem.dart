@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/auth.dart';
 import 'package:shop_app/providers/cart.dart';
 import 'package:shop_app/providers/product.dart';
 import 'package:shop_app/providers/product_provider.dart';
@@ -18,7 +19,7 @@ class productItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(context, listen: false);
     final cart = Provider.of<Cart>(context, listen: false);
-
+    final authData = Provider.of<Auth>(context, listen: false);
     return Container(
         padding: EdgeInsets.all(10),
         child: ClipRRect(
@@ -41,7 +42,7 @@ class productItem extends StatelessWidget {
                   onPressed: () {
                     Provider.of<Products>(context, listen: false)
                         .refreshProductList();
-                    product.toggleFavourite();
+                    product.toggleFavourite(authData.token as String , authData.userid);
                   },
                   icon: Icon(
                     product.isFavourite

@@ -32,6 +32,7 @@ class cartScreen extends StatelessWidget {
                   SizedBox(
                     width: 10,
                   ),
+
                   Spacer(),
                   Chip(
                     label: Text('\$ ${cart.totalamt}'),

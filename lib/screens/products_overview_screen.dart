@@ -23,6 +23,31 @@ class productOverview extends StatefulWidget {
 
 class _productOverviewState extends State<productOverview> {
   var ShowisFavourites = false;
+  var isInit = true  ;
+  var isLoading = false ;
+  
+  @override
+  void initState() {
+    // TODO: implement initState
+    //   Future.delayed(Duration.zero).then((_) =>     Provider.of<Products>(context).getsetProduct();)
+    super.initState();
+  }
+  @override
+  void didChangeDependencies()  {
+    // TODO: implement didChangeDependencies
+    if(isInit){
+      setState(() {
+        isLoading = true;
+      });
+      Provider.of<Products>(context).getsetProduct().then((_){
+        setState(() {
+         isLoading = false ;
+        });
+      });
+    }
+    isInit = false ;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +91,7 @@ class _productOverviewState extends State<productOverview> {
         title: Text('SHOP APP'),
       ),
       drawer: AppDrawer(),
-      body: products_grid(ShowisFavourites),
+      body: isLoading ? Center(child: CircularProgressIndicator(),)  :  products_grid(ShowisFavourites),
     );
   }
 }
